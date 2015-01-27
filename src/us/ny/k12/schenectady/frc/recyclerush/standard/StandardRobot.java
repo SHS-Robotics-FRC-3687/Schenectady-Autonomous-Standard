@@ -1,5 +1,6 @@
 package us.ny.k12.schenectady.frc.recyclerush.standard;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.SampleRobot;
 
 public abstract class StandardRobot extends SampleRobot {
@@ -38,9 +39,17 @@ public abstract class StandardRobot extends SampleRobot {
 	 */
 	public static final int CHANNEL_OPT = 6;
 	
+	protected DigitalInput dioA, dioB, dioC;
+	
+	public StandardRobot(int dioA, int dioB, int dioC) {
+		this.dioA = new DigitalInput(dioA);
+		this.dioB = new DigitalInput(dioB);
+		this.dioC = new DigitalInput(dioC);
+	}
+	
 	@Override
 	public void autonomous() {
-		boolean a = false, b = false, c = false;
+		boolean a = dioA.get(), b = dioB.get(), c = dioC.get();
 		
 		int code = ((a ? 1 : 0) << 2) + ((b ? 1 : 0) << 1) + (c ? 1 : 0);
 		
