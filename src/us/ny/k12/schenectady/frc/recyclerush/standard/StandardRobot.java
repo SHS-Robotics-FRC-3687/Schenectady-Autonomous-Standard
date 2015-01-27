@@ -39,20 +39,41 @@ public abstract class StandardRobot extends SampleRobot {
 	 */
 	public static final int CHANNEL_OPT = 6;
 	
-	protected DigitalInput dioA, dioB, dioC;
+	protected int code;
 	
-	public StandardRobot(int dioA, int dioB, int dioC) {
-		this.dioA = new DigitalInput(dioA);
-		this.dioB = new DigitalInput(dioB);
-		this.dioC = new DigitalInput(dioC);
+	/**
+	 * Construct a standard robot with a code.
+	 * 
+	 * @param code
+	 */
+	public StandardRobot(int code) {
+		this.code = code;
+	}
+	
+	/**
+	 * Construct a standard robot with an autonomous code
+	 * provided by three binary switches.
+	 * 
+	 * @param dioAChannel
+	 * @param dioBChannel
+	 * @param dioCChannel
+	 */
+	public StandardRobot(int dioAChannel, int dioBChannel, int dioCChannel) {
+		DigitalInput dioA = new DigitalInput(dioAChannel);
+		DigitalInput dioB = new DigitalInput(dioBChannel);
+		DigitalInput dioC = new DigitalInput(dioCChannel);
+		
+		boolean a = dioA.get(), b = dioB.get(), c = dioC.get();
+		
+		code = ((a ? 1 : 0) << 2) + ((b ? 1 : 0) << 1) + (c ? 1 : 0);
+		
+		dioA.free();
+		dioB.free();
+		dioC.free();
 	}
 	
 	@Override
 	public void autonomous() {
-		boolean a = dioA.get(), b = dioB.get(), c = dioC.get();
-		
-		int code = ((a ? 1 : 0) << 2) + ((b ? 1 : 0) << 1) + (c ? 1 : 0);
-		
 		autonomousCode(code);
 	}
 	
