@@ -51,6 +51,34 @@ public abstract class StandardRobot extends SampleRobot {
 	}
 	
 	/**
+	 * Construct a standard robot with a code provided by 
+	 * a set of DIO channels. Will search the channels 
+	 * and use the code of the array index of the first 
+	 * channel that returns a signal. If no channel is 
+	 * found, will default to NOTHING (0).
+	 * 
+	 * @param dioChannels array of DIO channels to search, 
+	 * in order of preference
+	 */
+	public StandardRobot(int[] dioChannels) {
+		for (int i = 0; i < dioChannels.length; i ++) {
+			DigitalInput dio = new DigitalInput(dioChannels[i]);
+			
+			if (dio.get()) {
+				code = i;
+				dio.free();
+				
+				return;
+			} else {
+				dio.free();
+			}
+		}
+		
+		//If none of the DIOs are enabled, default to NOTHING
+		code = NOTHING;
+	}
+	
+	/**
 	 * Construct a standard robot with an autonomous code
 	 * provided by three binary switches.
 	 * 
@@ -70,6 +98,10 @@ public abstract class StandardRobot extends SampleRobot {
 		dioA.free();
 		dioB.free();
 		dioC.free();
+	}
+	
+	public int getCode() {
+		return code;
 	}
 	
 	@Override
