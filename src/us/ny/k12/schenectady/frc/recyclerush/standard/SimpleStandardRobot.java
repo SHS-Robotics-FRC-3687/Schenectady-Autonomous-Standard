@@ -1,14 +1,6 @@
 package us.ny.k12.schenectady.frc.recyclerush.standard;
 
 public abstract class SimpleStandardRobot extends StandardRobot {
-	public SimpleStandardRobot(int code) {
-		super(code);
-	}
-	
-	public SimpleStandardRobot(int dioA, int dioB, int dioC) {
-		super(dioA, dioB, dioC);
-	}
-	
 	@Override
 	public void autonomousCode(int code) {
 		switch (code) {

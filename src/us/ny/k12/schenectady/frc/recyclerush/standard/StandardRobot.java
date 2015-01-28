@@ -4,6 +4,10 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.SampleRobot;
 
 public abstract class StandardRobot extends SampleRobot {
+	public StandardRobot() {
+		
+	}
+	
 	/**
 	 * Robot remains stationary during autonomous.
 	 */
@@ -39,19 +43,25 @@ public abstract class StandardRobot extends SampleRobot {
 	 */
 	public static final int CHANNEL_OPT = 6;
 	
+	boolean gBinaryDIO = false;
+	int[] gDIOChannels = null;
+	
 	protected int code;
 	
 	/**
-	 * Construct a standard robot with a code.
+	 * Initialize a standard robot with a code.
 	 * 
 	 * @param code
 	 */
-	public StandardRobot(int code) {
+	public void init(int code) {
 		this.code = code;
+		
+		gBinaryDIO = false;
+		gDIOChannels = null;
 	}
 	
 	/**
-	 * Construct a standard robot with a code provided by 
+	 * Initialize a standard robot with a code provided by 
 	 * a set of DIO channels. Will search the channels 
 	 * and use the code of the array index of the first 
 	 * channel that returns a signal. If no channel is 
@@ -60,44 +70,22 @@ public abstract class StandardRobot extends SampleRobot {
 	 * @param dioChannels array of DIO channels to search, 
 	 * in order of preference
 	 */
-	public StandardRobot(int[] dioChannels) {
-		for (int i = 0; i < dioChannels.length; i ++) {
-			DigitalInput dio = new DigitalInput(dioChannels[i]);
-			
-			if (dio.get()) {
-				code = i;
-				dio.free();
-				
-				return;
-			} else {
-				dio.free();
-			}
-		}
-		
-		//If none of the DIOs are enabled, default to NOTHING
-		code = NOTHING;
+	public void init(int[] dioChannels) {
+		gBinaryDIO = false;
+		gDIOChannels = dioChannels;
 	}
 	
 	/**
-	 * Construct a standard robot with an autonomous code
+	 * Initialize a standard robot with an autonomous code
 	 * provided by three binary switches.
 	 * 
 	 * @param dioAChannel
 	 * @param dioBChannel
 	 * @param dioCChannel
 	 */
-	public StandardRobot(int dioAChannel, int dioBChannel, int dioCChannel) {
-		DigitalInput dioA = new DigitalInput(dioAChannel);
-		DigitalInput dioB = new DigitalInput(dioBChannel);
-		DigitalInput dioC = new DigitalInput(dioCChannel);
-		
-		boolean a = dioA.get(), b = dioB.get(), c = dioC.get();
-		
-		code = ((a ? 1 : 0) << 2) + ((b ? 1 : 0) << 1) + (c ? 1 : 0);
-		
-		dioA.free();
-		dioB.free();
-		dioC.free();
+	public void init(int dioAChannel, int dioBChannel, int dioCChannel) {
+		gBinaryDIO = true;
+		gDIOChannels = new int[] {dioAChannel, dioBChannel, dioCChannel};
 	}
 	
 	public int getCode() {
@@ -106,6 +94,44 @@ public abstract class StandardRobot extends SampleRobot {
 	
 	@Override
 	public void autonomous() {
+		if (gDIOChannels != null) {
+			if (gBinaryDIO) {
+				DigitalInput dioA = new DigitalInput(gDIOChannels[0]);
+				DigitalInput dioB = new DigitalInput(gDIOChannels[1]);
+				DigitalInput dioC = new DigitalInput(gDIOChannels[2]);
+				
+				boolean a = dioA.get(), b = dioB.get(), c = dioC.get();
+				
+				code = ((a ? 1 : 0) << 2) + ((b ? 1 : 0) << 1) + (c ? 1 : 0);
+				
+				dioA.free();
+				dioB.free();
+				dioC.free();
+			} else {
+				System.out.println("detecting knob setting");
+				
+				//If none of the DIOs are enabled, default to NOTHING
+				code = NOTHING;
+				
+				for (int i = 0; i < gDIOChannels.length; i ++) {
+					DigitalInput dio = new DigitalInput(gDIOChannels[i]);
+					
+					if (!dio.get()) {
+						code = i;
+						dio.free();
+						
+						break;
+					} else {
+						dio.free();
+						
+						continue;
+					}
+				}
+			}
+		}
+		
+		System.out.println("code: " + code);
+		
 		autonomousCode(code);
 	}
 	
