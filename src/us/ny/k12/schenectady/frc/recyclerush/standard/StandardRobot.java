@@ -3,10 +3,15 @@ package us.ny.k12.schenectady.frc.recyclerush.standard;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.SampleRobot;
 
+/**
+ * Basic standards API.
+ * 
+ * To fully comply with the standard, have your robot 
+ * inherit from this class, implement autonomousCode(), 
+ * and call one of the superclass' init() method.
+ */
 public abstract class StandardRobot extends SampleRobot {
-	public StandardRobot() {
-		
-	}
+	public StandardRobot() {}
 	
 	/**
 	 * Robot remains stationary during autonomous.
@@ -43,9 +48,11 @@ public abstract class StandardRobot extends SampleRobot {
 	 */
 	public static final int CHANNEL_OPT = 6;
 	
+	// Stored channel numbers for reading when it's times
 	boolean gBinaryDIO = false;
 	int[] gDIOChannels = null;
 	
+	// The autonomous code!
 	protected int code;
 	
 	/**
@@ -76,24 +83,35 @@ public abstract class StandardRobot extends SampleRobot {
 	}
 	
 	/**
-	 * Initialize a standard robot with an autonomous code
-	 * provided by three binary switches.
+	 * Initialize a standard robot with an autonomous code 
+	 * provided by three binary switches. The code is 
+	 * interpreted as a 3-bit binary number.
 	 * 
-	 * @param dioAChannel
-	 * @param dioBChannel
-	 * @param dioCChannel
+	 * @param dioAChannel left bit
+	 * @param dioBChannel center bit
+	 * @param dioCChannel right bit
 	 */
 	public void init(int dioAChannel, int dioBChannel, int dioCChannel) {
 		gBinaryDIO = true;
 		gDIOChannels = new int[] {dioAChannel, dioBChannel, dioCChannel};
 	}
 	
+	/**
+	 * Get the current code. Note: This may not be up 
+	 * to date if you have not called readCode() and 
+	 * the input has changed.
+	 * 
+	 * @return
+	 */
 	public int getCode() {
 		return code;
 	}
 	
-	@Override
-	public void autonomous() {
+	/**
+	 * Force the library to re-read the code. This is done 
+	 * automatically at the beginning of autonomous.
+	 */
+	public void readCode() {
 		if (gDIOChannels != null) {
 			if (gBinaryDIO) {
 				DigitalInput dioA = new DigitalInput(gDIOChannels[0]);
@@ -102,15 +120,15 @@ public abstract class StandardRobot extends SampleRobot {
 				
 				boolean a = dioA.get(), b = dioB.get(), c = dioC.get();
 				
+				// Convert binary to decimal
 				code = ((a ? 1 : 0) << 2) + ((b ? 1 : 0) << 1) + (c ? 1 : 0);
 				
+				// Make sure to free our resourcess
 				dioA.free();
 				dioB.free();
 				dioC.free();
 			} else {
-				System.out.println("detecting knob setting");
-				
-				//If none of the DIOs are enabled, default to NOTHING
+				// If none of the DIOs are enabled, default to NOTHING
 				code = NOTHING;
 				
 				for (int i = 0; i < gDIOChannels.length; i ++) {
@@ -118,10 +136,13 @@ public abstract class StandardRobot extends SampleRobot {
 					
 					if (!dio.get()) {
 						code = i;
+						
+						// Make sure to free our resourcess
 						dio.free();
 						
 						break;
 					} else {
+						// Make sure to free our resourcess
 						dio.free();
 						
 						continue;
@@ -129,11 +150,31 @@ public abstract class StandardRobot extends SampleRobot {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * You're probably looking for autonomousCode().
+	 * 
+	 * If you override this method, you will need to call 
+	 * through to super.autonomous() in order for the 
+	 * library to behave properly.
+	 */
+	@Override
+	public void autonomous() {
+		readCode();
 		
-		System.out.println("code: " + code);
+		System.out.println("Schenectady Standard launching "
+				+ "autonomous using code: " + code);
 		
 		autonomousCode(code);
 	}
 	
+	/**
+	 * Called during autonomous with the current autonomous 
+	 * code. Do not override autonomous() as well unless 
+	 * you know what you are doing.
+	 * 
+	 * @param code
+	 */
 	public abstract void autonomousCode(int code);
 }
